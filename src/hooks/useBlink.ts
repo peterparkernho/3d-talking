@@ -6,22 +6,35 @@ import { BLINK_KEYS } from '@/lib/lipsync/visemeMap';
 const CLOSE_MS = 60;
 const OPEN_MS = 60;
 
-export function useBlink(meshRef: React.RefObject<SkinnedMesh | null>) {
+type BlinkLookup = Map<SkinnedMesh, number[]>;
+
+export function useBlink(meshesRef: React.RefObject<SkinnedMesh[]>) {
   const stateRef = useRef({
-    nextBlinkAt: performance.now() + 1500,
+    nextBlinkAt: performance.now() + 1500 + Math.random() * 2000,
     phase: 'idle' as 'idle' | 'closing' | 'opening',
     phaseStartedAt: 0,
   });
+  const lookupRef = useRef<BlinkLookup | null>(null);
 
   useEffect(() => {
-    stateRef.current.nextBlinkAt = performance.now() + 1500 + Math.random() * 2000;
-  }, []);
+    const meshes = meshesRef.current ?? [];
+    const lookup: BlinkLookup = new Map();
+    for (const mesh of meshes) {
+      const dict = mesh.morphTargetDictionary;
+      if (!dict) continue;
+      const indices: number[] = [];
+      for (const key of BLINK_KEYS) {
+        const idx = dict[key];
+        if (idx !== undefined) indices.push(idx);
+      }
+      if (indices.length) lookup.set(mesh, indices);
+    }
+    lookupRef.current = lookup;
+  }, [meshesRef]);
 
   useFrame(() => {
-    const mesh = meshRef.current;
-    if (!mesh?.morphTargetDictionary || !mesh.morphTargetInfluences) return;
-    const dict = mesh.morphTargetDictionary;
-    const inf = mesh.morphTargetInfluences;
+    const lookup = lookupRef.current;
+    if (!lookup || lookup.size === 0) return;
     const now = performance.now();
     const s = stateRef.current;
 
@@ -51,9 +64,10 @@ export function useBlink(meshRef: React.RefObject<SkinnedMesh | null>) {
       }
     }
 
-    for (const key of BLINK_KEYS) {
-      const idx = dict[key];
-      if (idx !== undefined) inf[idx] = weight;
-    }
+    lookup.forEach((indices, mesh) => {
+      const inf = mesh.morphTargetInfluences;
+      if (!inf) return;
+      for (const idx of indices) inf[idx] = weight;
+    });
   });
 }
