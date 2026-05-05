@@ -1,12 +1,11 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type { VRM } from '@pixiv/three-vrm';
-import { BLINK_EXPRESSION } from '@/lib/lipsync/visemeMap';
+import type { AvatarRig } from '@/lib/avatar/rig';
 
 const CLOSE_MS = 60;
 const OPEN_MS = 60;
 
-export function useBlink(vrm: VRM | null) {
+export function useBlink(rig: AvatarRig | null) {
   const stateRef = useRef({
     nextBlinkAt: performance.now() + 1500 + Math.random() * 2000,
     phase: 'idle' as 'idle' | 'closing' | 'opening',
@@ -14,7 +13,7 @@ export function useBlink(vrm: VRM | null) {
   });
 
   useFrame(() => {
-    if (!vrm?.expressionManager) return;
+    if (!rig) return;
     const now = performance.now();
     const s = stateRef.current;
 
@@ -44,6 +43,6 @@ export function useBlink(vrm: VRM | null) {
       }
     }
 
-    vrm.expressionManager.setValue(BLINK_EXPRESSION, weight);
+    rig.applyBlink(weight);
   });
 }

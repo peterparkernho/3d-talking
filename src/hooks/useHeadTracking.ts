@@ -2,25 +2,21 @@ import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MathUtils } from 'three';
 import type { Object3D } from 'three';
-import type { VRM } from '@pixiv/three-vrm';
+import type { AvatarRig } from '@/lib/avatar/rig';
 
 const YAW_RANGE = 0.35;
 const PITCH_RANGE = 0.25;
 const DAMP_LAMBDA = 4;
 
-export function useHeadTracking(vrm: VRM | null) {
+export function useHeadTracking(rig: AvatarRig | null) {
   const headRef = useRef<Object3D | null>(null);
   const baseRot = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    const head = vrm?.humanoid?.getNormalizedBoneNode('head') ?? null;
+    const head = rig?.getHeadBone() ?? null;
     headRef.current = head;
-    if (head) {
-      baseRot.current = { x: head.rotation.x, y: head.rotation.y };
-    } else if (vrm) {
-      console.warn('[useHeadTracking] no humanoid head bone found.');
-    }
-  }, [vrm]);
+    baseRot.current = head ? { x: head.rotation.x, y: head.rotation.y } : null;
+  }, [rig]);
 
   useFrame((state, delta) => {
     const head = headRef.current;

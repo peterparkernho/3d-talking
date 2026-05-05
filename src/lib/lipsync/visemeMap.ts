@@ -1,11 +1,14 @@
 /**
- * Centralised viseme + expression names.
- * Swapping a model? Edit this file ONLY.
+ * Centralised viseme + expression names. Edit ONLY this file when
+ * adding/swapping avatar formats.
  *
- * Target: VRM 1.0 avatars driven via VRMExpressionManager. VRM exposes
- * 5 mouth presets (aa, ih, ou, ee, oh) plus `blink`. TalkingHead's
- * lipsync-en produces 15 ARKit-style visemes — we collapse them onto
- * the VRM 5 with weights.
+ * Two paths are supported:
+ *  - GLB / RPM avatars: 15 ARKit-style `viseme_*` morph targets driven by
+ *    morphTargetInfluences directly, plus `eyeBlinkLeft/Right` for blinks.
+ *  - VRM 1.0 avatars: 5 mouth expression presets (aa, ih, ou, ee, oh) plus
+ *    `blink`, driven via VRMExpressionManager. TalkingHead's `lipsync-en`
+ *    produces the 15 ARKit visemes; we collapse them onto the 5 with
+ *    weighted contributions.
  */
 
 export const VISEMES = [
@@ -54,4 +57,8 @@ export const VISEME_TO_VRM: Record<VisemeKey, Partial<Record<VrmMouthExpression,
   viseme_RR: { oh: 0.5 },
 };
 
+/** GLB / RPM blink morph target names. */
+export const BLINK_KEYS_GLB = ['eyeBlinkLeft', 'eyeBlinkRight'] as const;
+
+/** VRM blink expression preset name. */
 export const BLINK_EXPRESSION = 'blink' as const;
