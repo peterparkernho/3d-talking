@@ -1,0 +1,19 @@
+node_modules
+dist
+dist-ssr
+.DS_Store
+*.local
+.env
+.env.*
+!.env.example
+
+# 3D model assets must NOT be committed (per project rules)
+public/models/
+*.glb
+*.gltf
+*.bin
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
