@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createDemoTransport, type MessageTransport } from '@/lib/transport';
 import { buildVisemeTimeline, type ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
+import { attachAnalyser, resumeAudioContext } from '@/lib/lipsync/audioAnalyser';
 
 function pickTransport(): { transport: MessageTransport; mode: 'rest' | 'ws' | 'demo' } {
   // Swap createDemoTransport() for createRestTransport(url) or
@@ -10,6 +11,7 @@ function pickTransport(): { transport: MessageTransport; mode: 'rest' | 'ws' | '
 
 export interface UseAgent {
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  analyserRef: React.RefObject<AnalyserNode | null>;
   text: string;
   timeline: ScheduledViseme[];
   isPlaying: boolean;
@@ -24,6 +26,7 @@ export interface UseAgent {
 export function useAgent(): UseAgent {
   const { transport, mode } = useMemo(pickTransport, []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const objectUrlRef = useRef<string | null>(null);
 
   const [text, setText] = useState('');
@@ -67,6 +70,8 @@ export function useAgent(): UseAgent {
 
         const el = audioRef.current;
         if (!el) return;
+        await resumeAudioContext();
+        analyserRef.current = attachAnalyser(el);
         el.src = url;
         await new Promise<void>((resolve, reject) => {
           const onReady = () => {
@@ -110,6 +115,7 @@ export function useAgent(): UseAgent {
 
   return {
     audioRef,
+    analyserRef,
     text,
     timeline,
     isPlaying,

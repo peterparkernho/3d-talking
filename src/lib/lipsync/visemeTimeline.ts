@@ -3,12 +3,12 @@ import { VISEMES, type VisemeKey } from '@/lib/lipsync/visemeMap';
 
 const ENGINE = new LipsyncEn();
 
+/** Cross-fade window between adjacent visemes (seconds). */
+export const BLEND_SEC = 0.07;
+
 export interface ScheduledViseme {
-  /** RPM viseme key e.g. 'viseme_aa' */
   key: VisemeKey;
-  /** seconds into audio when this viseme starts */
   start: number;
-  /** seconds into audio when this viseme ends */
   end: number;
 }
 
@@ -19,14 +19,9 @@ function toRpmKey(raw: string): VisemeKey | null {
   return VISEME_KEY_SET.has(candidate) ? candidate : null;
 }
 
-/**
- * Build a viseme timeline from the response text and align it to the audio
- * duration via linear stretch. With audioDuration in seconds.
- */
 export function buildVisemeTimeline(text: string, audioDuration: number): ScheduledViseme[] {
   const cleaned = ENGINE.preProcessText(text);
   if (!cleaned) return [];
-
   const { visemes, times, durations } = ENGINE.wordsToVisemes(cleaned);
   if (!visemes.length) return [];
 
@@ -48,14 +43,36 @@ export function buildVisemeTimeline(text: string, audioDuration: number): Schedu
 }
 
 /**
- * Linear search for the active viseme at time t. Cheap given typical
- * timeline sizes (~hundreds of entries per minute of speech).
+ * Trapezoidal blending: each viseme has ramp-up over BLEND_SEC,
+ * a hold at weight 1, then ramp-down. Adjacent visemes overlap
+ * during their ramps, so the mouth morphs continuously between
+ * shapes (coarticulation) instead of snapping to one at a time.
+ *
+ * We mutate `out` in place to avoid GC churn each frame.
  */
-export function findActiveViseme(timeline: ScheduledViseme[], t: number): VisemeKey | null {
-  for (let i = 0; i < timeline.length; i += 1) {
-    const v = timeline[i];
-    if (t >= v.start && t < v.end) return v.key;
-    if (v.start > t) return null;
+export function computeVisemeWeights(
+  timeline: ScheduledViseme[],
+  t: number,
+  out: Map<VisemeKey, number>,
+): Map<VisemeKey, number> {
+  out.clear();
+  const half = BLEND_SEC / 2;
+
+  for (const v of timeline) {
+    if (t < v.start - half) break;
+    if (t > v.end + half) continue;
+
+    let w: number;
+    if (t < v.start + half) {
+      w = (t - (v.start - half)) / BLEND_SEC;
+    } else if (t > v.end - half) {
+      w = (v.end + half - t) / BLEND_SEC;
+    } else {
+      w = 1;
+    }
+    if (w <= 0) continue;
+    const prev = out.get(v.key);
+    if (prev === undefined || w > prev) out.set(v.key, w);
   }
-  return null;
+  return out;
 }

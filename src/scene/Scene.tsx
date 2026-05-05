@@ -10,6 +10,7 @@ const isDev = import.meta.env.DEV;
 
 interface SceneProps {
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  analyserRef: React.RefObject<AnalyserNode | null>;
   isPlaying: boolean;
   timeline: ScheduledViseme[];
   isMobile: boolean;
@@ -34,7 +35,7 @@ function Loader() {
   );
 }
 
-export default function Scene({ audioRef, isPlaying, timeline, isMobile }: SceneProps) {
+export default function Scene({ audioRef, analyserRef, isPlaying, timeline, isMobile }: SceneProps) {
   const cameraPosition: [number, number, number] = isMobile ? [0, 1.5, 3.2] : [0, 1.5, 2.5];
   const fov = isMobile ? 32 : 35;
 
@@ -49,7 +50,12 @@ export default function Scene({ audioRef, isPlaying, timeline, isMobile }: Scene
 
       <Suspense fallback={<Loader />}>
         <Environment preset="city" />
-        <Avatar audioRef={audioRef} isPlaying={isPlaying} timeline={timeline} />
+        <Avatar
+          audioRef={audioRef}
+          analyserRef={analyserRef}
+          isPlaying={isPlaying}
+          timeline={timeline}
+        />
       </Suspense>
 
       <Particles />

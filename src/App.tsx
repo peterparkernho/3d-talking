@@ -24,6 +24,7 @@ export default function App() {
       <Suspense fallback={null}>
         <Scene
           audioRef={agent.audioRef}
+          analyserRef={agent.analyserRef}
           isPlaying={agent.isPlaying}
           timeline={agent.timeline}
           isMobile={isMobile}

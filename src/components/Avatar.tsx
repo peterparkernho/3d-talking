@@ -12,11 +12,12 @@ useGLTF.preload(AVATAR_URL);
 
 interface AvatarProps {
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  analyserRef: React.RefObject<AnalyserNode | null>;
   isPlaying: boolean;
   timeline: ScheduledViseme[];
 }
 
-export default function Avatar({ audioRef, isPlaying, timeline }: AvatarProps) {
+export default function Avatar({ audioRef, analyserRef, isPlaying, timeline }: AvatarProps) {
   const groupRef = useRef<Group>(null);
   const morphMeshesRef = useRef<SkinnedMesh[]>([]);
   const { scene } = useGLTF(AVATAR_URL);
@@ -49,7 +50,7 @@ export default function Avatar({ audioRef, isPlaying, timeline }: AvatarProps) {
 
   useBreathing(groupRef);
   useBlink(morphMeshesRef);
-  useTalkingHeadLipSync(morphMeshesRef, { audioRef, isPlaying, timeline });
+  useTalkingHeadLipSync(morphMeshesRef, { audioRef, analyserRef, isPlaying, timeline });
   useHeadTracking(groupRef);
 
   return (
