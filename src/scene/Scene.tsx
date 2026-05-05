@@ -9,6 +9,7 @@ import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
 const isDev = import.meta.env.DEV;
 
 interface SceneProps {
+  avatarUrl: string;
   audioRef: React.RefObject<HTMLAudioElement | null>;
   analyserRef: React.RefObject<AnalyserNode | null>;
   isPlaying: boolean;
@@ -35,7 +36,7 @@ function Loader() {
   );
 }
 
-export default function Scene({ audioRef, analyserRef, isPlaying, timeline, isMobile }: SceneProps) {
+export default function Scene({ avatarUrl, audioRef, analyserRef, isPlaying, timeline, isMobile }: SceneProps) {
   const cameraPosition: [number, number, number] = isMobile ? [0, 1.5, 3.2] : [0, 1.5, 2.5];
   const fov = isMobile ? 32 : 35;
 
@@ -51,6 +52,8 @@ export default function Scene({ audioRef, analyserRef, isPlaying, timeline, isMo
       <Suspense fallback={<Loader />}>
         <Environment preset="city" />
         <Avatar
+          key={avatarUrl}
+          url={avatarUrl}
           audioRef={audioRef}
           analyserRef={analyserRef}
           isPlaying={isPlaying}

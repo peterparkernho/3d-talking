@@ -1,13 +1,16 @@
 import { Suspense, lazy, useState } from 'react';
 import StartGate from '@/components/StartGate';
 import ChatBar from '@/components/ChatBar';
+import ModelPicker from '@/components/ModelPicker';
 import { useAgent } from '@/hooks/useAgent';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { DEFAULT_AVATAR_URL } from '@/lib/avatar/presets';
 
 const Scene = lazy(() => import('@/scene/Scene'));
 
 export default function App() {
   const [started, setStarted] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR_URL);
   const isMobile = useIsMobile();
   const agent = useAgent();
 
@@ -23,6 +26,7 @@ export default function App() {
     <div className="app-root">
       <Suspense fallback={null}>
         <Scene
+          avatarUrl={avatarUrl}
           audioRef={agent.audioRef}
           analyserRef={agent.analyserRef}
           isPlaying={agent.isPlaying}
@@ -30,6 +34,7 @@ export default function App() {
           isMobile={isMobile}
         />
       </Suspense>
+      {started && <ModelPicker value={avatarUrl} onChange={setAvatarUrl} />}
       {!started && <StartGate onStart={handleStart} isReady />}
       {started && (
         <ChatBar

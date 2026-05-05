@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Group } from 'three';
-import { AVATAR_URL } from '@/lib/config';
 import { readAvatar } from '@/lib/avatar/loadAvatar';
 import { useBreathing } from '@/hooks/useBreathing';
 import { useBlink } from '@/hooks/useBlink';
@@ -10,15 +9,16 @@ import { useHeadTracking } from '@/hooks/useHeadTracking';
 import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
 
 interface AvatarProps {
+  url: string;
   audioRef: React.RefObject<HTMLAudioElement | null>;
   analyserRef: React.RefObject<AnalyserNode | null>;
   isPlaying: boolean;
   timeline: ScheduledViseme[];
 }
 
-export default function Avatar({ audioRef, analyserRef, isPlaying, timeline }: AvatarProps) {
+export default function Avatar({ url, audioRef, analyserRef, isPlaying, timeline }: AvatarProps) {
   const groupRef = useRef<Group>(null);
-  const rig = readAvatar(AVATAR_URL);
+  const rig = readAvatar(url);
 
   useBreathing(groupRef);
   useBlink(rig);
