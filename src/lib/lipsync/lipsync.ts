@@ -10,7 +10,7 @@ let instance: Lipsync | null = null;
 let connectedTo: HTMLMediaElement | null = null;
 
 export function getLipsync(): Lipsync {
-  if (!instance) instance = new Lipsync({ fftSize: 1024, historySize: 8 });
+  if (!instance) instance = new Lipsync({ fftSize: 2048, historySize: 10 });
   return instance;
 }
 
