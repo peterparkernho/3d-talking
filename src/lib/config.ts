@@ -14,3 +14,14 @@ export const AVATAR_URL: string =
 
 export const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL as string | undefined;
 export const LIVEKIT_TOKEN = import.meta.env.VITE_LIVEKIT_TOKEN as string | undefined;
+
+/**
+ * Mixamo body animations. Drop the FBX files into /public/animations/ and
+ * the avatar plays idle by default, crossfading to talking while audio is
+ * playing. Override either path with VITE_IDLE_ANIM_URL / VITE_TALKING_ANIM_URL.
+ * Missing files log a warning and the avatar still works without body motion.
+ */
+export const IDLE_ANIM_URL: string =
+  (import.meta.env.VITE_IDLE_ANIM_URL as string | undefined) ?? '/animations/idle.fbx';
+export const TALKING_ANIM_URL: string =
+  (import.meta.env.VITE_TALKING_ANIM_URL as string | undefined) ?? '/animations/talking.fbx';

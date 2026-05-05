@@ -2,10 +2,12 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Group } from 'three';
 import { readAvatar } from '@/lib/avatar/loadAvatar';
+import { IDLE_ANIM_URL, TALKING_ANIM_URL } from '@/lib/config';
 import { useBreathing } from '@/hooks/useBreathing';
 import { useBlink } from '@/hooks/useBlink';
 import { useTalkingHeadLipSync } from '@/hooks/useTalkingHeadLipSync';
 import { useHeadTracking } from '@/hooks/useHeadTracking';
+import { useBodyAnimation } from '@/hooks/useBodyAnimation';
 import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
 
 interface AvatarProps {
@@ -24,9 +26,11 @@ export default function Avatar({ url, audioRef, analyserRef, isPlaying, timeline
   useBlink(rig);
   useTalkingHeadLipSync(rig, { audioRef, analyserRef, isPlaying, timeline });
   useHeadTracking(rig);
+  useBodyAnimation(rig, IDLE_ANIM_URL, TALKING_ANIM_URL, isPlaying);
 
-  // Registered last so it runs after every other useFrame in this component —
-  // VRM's expressionManager flush + spring bones need the up-to-date weights.
+  // Registered last so it runs after every other useFrame in this component:
+  // mixer.update() consumes the weights set by useBodyAnimation, then VRM's
+  // expressionManager flushes mouth/blink, and spring bones tick.
   useFrame((_, delta) => rig.tick(delta));
 
   return (
