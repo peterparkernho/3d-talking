@@ -3,10 +3,11 @@
  * Avatar URL is overridable via VITE_AVATAR_URL.
  */
 
-// Bundled in /public/models/ (gitignored). Sourced from wawa-lipsync's demo —
-// an RPM avatar with ARKit + Oculus visemes baked in. Override with
-// VITE_AVATAR_URL to point at your own RPM URL or a different local file.
-const DEFAULT_AVATAR_URL = '/models/character.glb';
+// Default is the pixiv/three-vrm VRM 1.0 sample (MIT-licensed) served via
+// jsDelivr — no auth, no signup, suitable for local dev. Override with
+// VITE_AVATAR_URL to point at your own VRM file or CDN URL.
+const DEFAULT_AVATAR_URL =
+  'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm';
 
 export const AVATAR_URL: string =
   (import.meta.env.VITE_AVATAR_URL as string | undefined) ?? DEFAULT_AVATAR_URL;

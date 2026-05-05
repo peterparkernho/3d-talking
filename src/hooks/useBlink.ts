@@ -1,40 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type { SkinnedMesh } from 'three';
-import { BLINK_KEYS } from '@/lib/lipsync/visemeMap';
+import type { VRM } from '@pixiv/three-vrm';
+import { BLINK_EXPRESSION } from '@/lib/lipsync/visemeMap';
 
 const CLOSE_MS = 60;
 const OPEN_MS = 60;
 
-type BlinkLookup = Map<SkinnedMesh, number[]>;
-
-export function useBlink(meshesRef: React.RefObject<SkinnedMesh[]>) {
+export function useBlink(vrm: VRM | null) {
   const stateRef = useRef({
     nextBlinkAt: performance.now() + 1500 + Math.random() * 2000,
     phase: 'idle' as 'idle' | 'closing' | 'opening',
     phaseStartedAt: 0,
   });
-  const lookupRef = useRef<BlinkLookup | null>(null);
-
-  useEffect(() => {
-    const meshes = meshesRef.current ?? [];
-    const lookup: BlinkLookup = new Map();
-    for (const mesh of meshes) {
-      const dict = mesh.morphTargetDictionary;
-      if (!dict) continue;
-      const indices: number[] = [];
-      for (const key of BLINK_KEYS) {
-        const idx = dict[key];
-        if (idx !== undefined) indices.push(idx);
-      }
-      if (indices.length) lookup.set(mesh, indices);
-    }
-    lookupRef.current = lookup;
-  }, [meshesRef]);
 
   useFrame(() => {
-    const lookup = lookupRef.current;
-    if (!lookup || lookup.size === 0) return;
+    if (!vrm?.expressionManager) return;
     const now = performance.now();
     const s = stateRef.current;
 
@@ -64,10 +44,6 @@ export function useBlink(meshesRef: React.RefObject<SkinnedMesh[]>) {
       }
     }
 
-    lookup.forEach((indices, mesh) => {
-      const inf = mesh.morphTargetInfluences;
-      if (!inf) return;
-      for (const idx of indices) inf[idx] = weight;
-    });
+    vrm.expressionManager.setValue(BLINK_EXPRESSION, weight);
   });
 }
