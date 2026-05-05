@@ -5,6 +5,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import Avatar from '@/components/Avatar';
 import Particles from '@/scene/Particles';
 import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
+import type { EmotionName } from '@/lib/avatar/emotions';
 
 const isDev = import.meta.env.DEV;
 
@@ -15,6 +16,7 @@ interface SceneProps {
   isPlaying: boolean;
   timeline: ScheduledViseme[];
   isMobile: boolean;
+  emotion: EmotionName;
 }
 
 function Loader() {
@@ -36,7 +38,7 @@ function Loader() {
   );
 }
 
-export default function Scene({ avatarUrl, audioRef, analyserRef, isPlaying, timeline, isMobile }: SceneProps) {
+export default function Scene({ avatarUrl, audioRef, analyserRef, isPlaying, timeline, isMobile, emotion }: SceneProps) {
   const cameraPosition: [number, number, number] = isMobile ? [0, 1.5, 3.2] : [0, 1.5, 2.5];
   const fov = isMobile ? 32 : 35;
 
@@ -58,6 +60,7 @@ export default function Scene({ avatarUrl, audioRef, analyserRef, isPlaying, tim
           analyserRef={analyserRef}
           isPlaying={isPlaying}
           timeline={timeline}
+          emotion={emotion}
         />
       </Suspense>
 

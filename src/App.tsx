@@ -2,15 +2,18 @@ import { Suspense, lazy, useState } from 'react';
 import StartGate from '@/components/StartGate';
 import ChatBar from '@/components/ChatBar';
 import ModelPicker from '@/components/ModelPicker';
+import EmotionPicker from '@/components/EmotionPicker';
 import { useAgent } from '@/hooks/useAgent';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DEFAULT_AVATAR_URL } from '@/lib/avatar/presets';
+import type { EmotionName } from '@/lib/avatar/emotions';
 
 const Scene = lazy(() => import('@/scene/Scene'));
 
 export default function App() {
   const [started, setStarted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR_URL);
+  const [emotion, setEmotion] = useState<EmotionName>('neutral');
   const isMobile = useIsMobile();
   const agent = useAgent();
 
@@ -32,9 +35,11 @@ export default function App() {
           isPlaying={agent.isPlaying}
           timeline={agent.timeline}
           isMobile={isMobile}
+          emotion={emotion}
         />
       </Suspense>
       {started && <ModelPicker value={avatarUrl} onChange={setAvatarUrl} />}
+      {started && <EmotionPicker value={emotion} onChange={setEmotion} />}
       {!started && <StartGate onStart={handleStart} isReady />}
       {started && (
         <ChatBar

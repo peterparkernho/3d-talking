@@ -14,9 +14,16 @@ import {
   type VisemeKey,
 } from '@/lib/lipsync/visemeMap';
 import { GLB_RESERVED_BONES } from './mixamoVRMRigMap';
+import {
+  ARKIT_EMOTION_COMPOSITION,
+  ARKIT_EMOTION_SHAPES,
+  EMOTIONS,
+  type EmotionName,
+} from './emotions';
 import type { AvatarRig } from './rig';
 
 const DAMP_LAMBDA = 18;
+const EMOTION_LAMBDA = 6;
 
 type VisemeIndexMap = Map<SkinnedMesh, Partial<Record<VisemeKey, number>>>;
 type BlinkIndexMap = Map<SkinnedMesh, number[]>;
@@ -64,6 +71,23 @@ function buildBlinkIndex(meshes: SkinnedMesh[]): BlinkIndexMap {
   return out;
 }
 
+type EmotionShapeIndex = Map<string, Map<SkinnedMesh, number>>;
+
+function buildEmotionShapeIndex(meshes: SkinnedMesh[]): EmotionShapeIndex {
+  const out: EmotionShapeIndex = new Map();
+  for (const shape of ARKIT_EMOTION_SHAPES) {
+    const perMesh = new Map<SkinnedMesh, number>();
+    for (const mesh of meshes) {
+      const dict = mesh.morphTargetDictionary;
+      if (!dict) continue;
+      const idx = dict[shape];
+      if (idx !== undefined) perMesh.set(mesh, idx);
+    }
+    if (perMesh.size) out.set(shape, perMesh);
+  }
+  return out;
+}
+
 function findHeadBone(root: Object3D): Bone | null {
   let found: Bone | null = null;
   root.traverse((obj) => {
@@ -78,6 +102,7 @@ export function createGlbRig(scene: Object3D): AvatarRig {
   const meshes = collectMorphMeshes(scene);
   const visemeIdx = buildVisemeIndex(meshes);
   const blinkIdx = buildBlinkIndex(meshes);
+  const emotionIdx = buildEmotionShapeIndex(meshes);
   const head = findHeadBone(scene);
   const mixer = new AnimationMixer(scene);
 
@@ -85,6 +110,18 @@ export function createGlbRig(scene: Object3D): AvatarRig {
     console.warn('[glbRig] no meshes with viseme_* morph targets — mouth will not animate.');
   }
   if (!head) console.warn('[glbRig] no head bone found.');
+  if (emotionIdx.size === 0) {
+    console.warn('[glbRig] no ARKit emotion morph targets found — emotions will be no-ops.');
+  }
+
+  const emotionWeights: Record<EmotionName, number> = {
+    neutral: 1,
+    happy: 0,
+    sad: 0,
+    angry: 0,
+    surprised: 0,
+    relaxed: 0,
+  };
 
   return {
     scene,
@@ -105,6 +142,27 @@ export function createGlbRig(scene: Object3D): AvatarRig {
         const inf = mesh.morphTargetInfluences;
         if (!inf) return;
         for (const idx of indices) inf[idx] = weight;
+      });
+    },
+    applyEmotion(active, delta) {
+      for (const k of EMOTIONS) {
+        emotionWeights[k] = MathUtils.damp(
+          emotionWeights[k],
+          k === active ? 1 : 0,
+          EMOTION_LAMBDA,
+          delta,
+        );
+      }
+      emotionIdx.forEach((perMesh, shape) => {
+        let target = 0;
+        for (const k of EMOTIONS) {
+          const w = ARKIT_EMOTION_COMPOSITION[k][shape];
+          if (w) target += emotionWeights[k] * w;
+        }
+        perMesh.forEach((idx, mesh) => {
+          const inf = mesh.morphTargetInfluences;
+          if (inf) inf[idx] = target;
+        });
       });
     },
     getHeadBone() {

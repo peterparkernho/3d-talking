@@ -1,5 +1,6 @@
 import type { AnimationAction, AnimationClip, Group, Object3D } from 'three';
 import type { VisemeKey } from '@/lib/lipsync/visemeMap';
+import type { EmotionName } from './emotions';
 
 /**
  * Format-agnostic handle for a loaded character. Hooks talk to this — they
@@ -23,6 +24,13 @@ export interface AvatarRig {
 
   /** Set blink weight 0..1 directly (callers handle their own easing). */
   applyBlink(weight: number): void;
+
+  /**
+   * Set the active emotion. The rig owns its own per-emotion damped state,
+   * so callers just pass the current selection every frame and the rig
+   * crossfades smoothly when it changes.
+   */
+  applyEmotion(active: EmotionName, delta: number): void;
 
   /** Head bone for cursor tracking. Returns null if humanoid mapping is unavailable. */
   getHeadBone(): Object3D | null;

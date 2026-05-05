@@ -1,0 +1,47 @@
+.wrap {
+  position: fixed;
+  top: max(70px, calc(env(safe-area-inset-top) + 70px));
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(20, 8, 40, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  max-width: 240px;
+}
+
+.label {
+  width: 100%;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.btn {
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn[aria-pressed='true'] {
+  background: rgba(168, 120, 255, 0.35);
+  border-color: rgba(168, 120, 255, 0.65);
+  color: #fff;
+}

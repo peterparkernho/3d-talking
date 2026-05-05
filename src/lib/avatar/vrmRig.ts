@@ -18,9 +18,11 @@ import {
   type VrmMouthExpression,
 } from '@/lib/lipsync/visemeMap';
 import { mixamoVRMRigMap, VRM_RESERVED_BONES } from './mixamoVRMRigMap';
+import { EMOTIONS, VRM_EMOTION_PRESETS, type EmotionName } from './emotions';
 import type { AvatarRig } from './rig';
 
 const DAMP_LAMBDA = 18;
+const EMOTION_LAMBDA = 6;
 
 export function createVrmRig(vrm: VRM): AvatarRig {
   const smoothed: Record<VrmMouthExpression, number> = {
@@ -42,6 +44,15 @@ export function createVrmRig(vrm: VRM): AvatarRig {
   if (!head) console.warn('[vrmRig] no humanoid head bone.');
 
   const mixer = new AnimationMixer(vrm.scene);
+
+  const emotionWeights: Record<EmotionName, number> = {
+    neutral: 1,
+    happy: 0,
+    sad: 0,
+    angry: 0,
+    surprised: 0,
+    relaxed: 0,
+  };
 
   return {
     scene: vrm.scene,
@@ -71,6 +82,20 @@ export function createVrmRig(vrm: VRM): AvatarRig {
     },
     applyBlink(weight) {
       vrm.expressionManager?.setValue(BLINK_EXPRESSION, weight);
+    },
+    applyEmotion(active, delta) {
+      const em = vrm.expressionManager;
+      if (!em) return;
+      for (const k of EMOTIONS) {
+        emotionWeights[k] = MathUtils.damp(
+          emotionWeights[k],
+          k === active ? 1 : 0,
+          EMOTION_LAMBDA,
+          delta,
+        );
+        const preset = VRM_EMOTION_PRESETS[k];
+        if (preset) em.setValue(preset, emotionWeights[k]);
+      }
     },
     getHeadBone() {
       return head;
