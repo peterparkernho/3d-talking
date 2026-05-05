@@ -4,11 +4,14 @@ import { Environment, OrbitControls, Html, useProgress } from '@react-three/drei
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import Avatar from '@/components/Avatar';
 import Particles from '@/scene/Particles';
+import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
 
 const isDev = import.meta.env.DEV;
 
 interface SceneProps {
-  speaking: boolean;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  isPlaying: boolean;
+  timeline: ScheduledViseme[];
   isMobile: boolean;
 }
 
@@ -31,7 +34,7 @@ function Loader() {
   );
 }
 
-export default function Scene({ speaking, isMobile }: SceneProps) {
+export default function Scene({ audioRef, isPlaying, timeline, isMobile }: SceneProps) {
   const cameraPosition: [number, number, number] = isMobile ? [0, 1.5, 3.2] : [0, 1.5, 2.5];
   const fov = isMobile ? 32 : 35;
 
@@ -46,7 +49,7 @@ export default function Scene({ speaking, isMobile }: SceneProps) {
 
       <Suspense fallback={<Loader />}>
         <Environment preset="city" />
-        <Avatar speaking={speaking} />
+        <Avatar audioRef={audioRef} isPlaying={isPlaying} timeline={timeline} />
       </Suspense>
 
       <Particles />

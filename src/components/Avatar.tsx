@@ -4,16 +4,19 @@ import type { Group, SkinnedMesh } from 'three';
 import { AVATAR_URL } from '@/lib/config';
 import { useBreathing } from '@/hooks/useBreathing';
 import { useBlink } from '@/hooks/useBlink';
-import { useLipSync } from '@/hooks/useLipSync';
+import { useTalkingHeadLipSync } from '@/hooks/useTalkingHeadLipSync';
 import { useHeadTracking } from '@/hooks/useHeadTracking';
+import type { ScheduledViseme } from '@/lib/lipsync/visemeTimeline';
 
 useGLTF.preload(AVATAR_URL);
 
 interface AvatarProps {
-  speaking: boolean;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  isPlaying: boolean;
+  timeline: ScheduledViseme[];
 }
 
-export default function Avatar({ speaking }: AvatarProps) {
+export default function Avatar({ audioRef, isPlaying, timeline }: AvatarProps) {
   const groupRef = useRef<Group>(null);
   const morphMeshesRef = useRef<SkinnedMesh[]>([]);
   const { scene } = useGLTF(AVATAR_URL);
@@ -46,7 +49,7 @@ export default function Avatar({ speaking }: AvatarProps) {
 
   useBreathing(groupRef);
   useBlink(morphMeshesRef);
-  useLipSync(morphMeshesRef, { enabled: speaking });
+  useTalkingHeadLipSync(morphMeshesRef, { audioRef, isPlaying, timeline });
   useHeadTracking(groupRef);
 
   return (

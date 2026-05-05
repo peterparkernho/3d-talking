@@ -1,36 +1,45 @@
 import { Suspense, lazy, useState } from 'react';
-import Controls from '@/components/Controls';
 import StartGate from '@/components/StartGate';
-import { useAudio } from '@/hooks/useAudio';
+import ChatBar from '@/components/ChatBar';
+import { useAgent } from '@/hooks/useAgent';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Scene = lazy(() => import('@/scene/Scene'));
 
-const SAMPLE_AUDIO_SRC = '/sample.mp3';
-
 export default function App() {
   const [started, setStarted] = useState(false);
   const isMobile = useIsMobile();
-  const { isPlaying, isReady, isMuted, play, toggle, toggleMute } = useAudio(SAMPLE_AUDIO_SRC);
+  const agent = useAgent();
 
   const handleStart = () => {
     setStarted(true);
-    void play();
+  };
+
+  const handleSend = (text: string) => {
+    void agent.send(text).catch((err) => console.error('[agent.send]', err));
   };
 
   return (
     <div className="app-root">
       <Suspense fallback={null}>
-        <Scene speaking={isPlaying} isMobile={isMobile} />
+        <Scene
+          audioRef={agent.audioRef}
+          isPlaying={agent.isPlaying}
+          timeline={agent.timeline}
+          isMobile={isMobile}
+        />
       </Suspense>
-      {!started && <StartGate onStart={handleStart} isReady={isReady} />}
+      {!started && <StartGate onStart={handleStart} isReady />}
       {started && (
-        <Controls
-          isPlaying={isPlaying}
-          isReady={isReady}
-          isMuted={isMuted}
-          onToggle={toggle}
-          onToggleMute={toggleMute}
+        <ChatBar
+          mode={agent.mode}
+          isSending={agent.isSending}
+          isPlaying={agent.isPlaying}
+          isMuted={agent.isMuted}
+          lastReply={agent.text}
+          onSend={handleSend}
+          onStop={agent.stop}
+          onToggleMute={agent.toggleMute}
         />
       )}
     </div>
