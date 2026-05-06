@@ -11,7 +11,7 @@ const VRM_SAMPLE =
 
 export const AVATAR_PRESETS: AvatarPreset[] = [
   { id: 'vrm-sample', label: 'VRM — pixiv sample', url: VRM_SAMPLE },
-  { id: 'local-glb', label: 'GLB — local /models/character.glb', url: '/models/character.glb' },
+  { id: 'local-glb', label: 'GLB — local /models/projectPeter.glb', url: '/models/projectPeter.glb' },
 ];
 
 /** Initial selection: whatever VITE_AVATAR_URL points at. Falls back to first preset. */
