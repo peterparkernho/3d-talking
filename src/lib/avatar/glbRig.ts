@@ -1,8 +1,10 @@
 import {
   AnimationClip,
   AnimationMixer,
+  Box3,
   KeyframeTrack,
   MathUtils,
+  Vector3,
   type Bone,
   type Group,
   type Object3D,
@@ -88,6 +90,46 @@ function buildEmotionShapeIndex(meshes: SkinnedMesh[]): EmotionShapeIndex {
   return out;
 }
 
+/**
+ * GLBs come in wildly different scales (some authored at meters, some at cm,
+ * some at half-height for stylized characters). The scene camera/target are
+ * tuned for a ~1.7m human standing with feet at y=0, so we normalize every
+ * GLB into that frame: uniform scale to TARGET_HEIGHT, then translate so the
+ * bounding box bottom sits on y=0 and the horizontal center is at x=0,z=0.
+ */
+const TARGET_HEIGHT = 1.7;
+// Small upward nudge so the head/torso sit closer to the camera target
+// (y≈1.4) rather than dropping into the lower half of the frame.
+const GROUND_OFFSET = 0.15;
+
+function normalizeGlbTransform(scene: Object3D): void {
+  // Make sure world matrices reflect the loader's authored transforms before
+  // we measure — otherwise Box3.setFromObject reads stale matrices on nested
+  // skinned meshes and returns a degenerate box.
+  scene.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(scene);
+  if (!isFinite(box.min.y) || !isFinite(box.max.y)) {
+    console.warn('[glbRig] could not measure bounding box — skipping normalization.');
+    return;
+  }
+  const size = new Vector3();
+  box.getSize(size);
+  if (size.y <= 0) return;
+
+  const scale = TARGET_HEIGHT / size.y;
+  scene.scale.multiplyScalar(scale);
+
+  // Re-measure post-scale so the recenter math accounts for the new bounds.
+  scene.updateMatrixWorld(true);
+  const scaled = new Box3().setFromObject(scene);
+  const center = new Vector3();
+  scaled.getCenter(center);
+  scene.position.x -= center.x;
+  scene.position.z -= center.z;
+  scene.position.y -= scaled.min.y;
+  scene.position.y += GROUND_OFFSET;
+}
+
 function findHeadBone(root: Object3D): Bone | null {
   let found: Bone | null = null;
   root.traverse((obj) => {
@@ -99,6 +141,7 @@ function findHeadBone(root: Object3D): Bone | null {
 }
 
 export function createGlbRig(scene: Object3D): AvatarRig {
+  normalizeGlbTransform(scene);
   const meshes = collectMorphMeshes(scene);
   const visemeIdx = buildVisemeIndex(meshes);
   const blinkIdx = buildBlinkIndex(meshes);
